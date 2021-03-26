@@ -1,0 +1,17 @@
+# this is /usr/lib/systemd/system/salinasBackup.service
+# (or /lib/systemd/system/salinasBackup.service dependent on 
+#  your linux distribution flavor )
+
+[Unit]
+Description=Salinas Backup scripts
+#Documentation=http://tuxgraphics.org/npa/
+#After=network.target syslog.target
+
+[Service]
+# see man systemd.service 
+Type=oneshot
+ExecStart=/usr/sbin/backupLinux-daemon.sh -h freenas01.trvm.xyz
+#RemainAfterExit=true
+#ExecStop=/usr/bin/your_cmd-stop.sh
+#StandardOutput=journal
+
