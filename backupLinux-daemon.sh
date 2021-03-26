@@ -56,6 +56,17 @@ compareVer ()
     return 0
 }
 
+# Check for and download updates
+getupdates()
+{
+}
+
+# Verify that at least one network interface is up and active and backup host is available
+checknetwork()
+{
+    for n in /sys/
+}
+
 # Log things
 readonly LOG_ROOT="/var/log/salinasbak"
 readonly ERROR_LOG="$LOG_ROOT/error.log"
