@@ -1,6 +1,6 @@
 #!/bin/bash
 # Allow users to backup individual homedirs
-##Ver:0.0.1
+##Ver:0.0.2
 
 #'''
 #Backup local computer to mounted NFS share.
