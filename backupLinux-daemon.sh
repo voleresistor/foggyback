@@ -1,6 +1,7 @@
 #!/bin/bash
-# Allow users to backup individual homedirs
 ##Ver:0.0.2
+
+# Allow users to backup individual homedirs
 
 #'''
 #Backup local computer to mounted NFS share.
@@ -28,9 +29,7 @@ writelog ()
 	echo "$(date '+%y/%m/%d-%H:%M:%S.%N')>> $2" >> $1
 }
 
-
-
-# Check for and download updates
+# Check for and download updates to the wrapper
 doUpdateScript()
 {
 	# Compare remote and local versions
@@ -135,8 +134,8 @@ doUpdateScript()
 	}
 
 	# File locations and search string
-	remoteScript='https://raw.githubusercontent.com/voleresistor/foggyback/main/backupLinux-daemon.sh'
-	localScript="$(pwd)/$0"
+	remoteScript='https://raw.githubusercontent.com/voleresistor/foggyback/main/foggyback.sh'
+	localScript="/usr/sbin/foggyback.sh"
 	#localScript="/home/aogden/dev/test/target.sh"
 	verStr="##Ver:"
 
