@@ -1,5 +1,5 @@
 #!/bin/bash
-##Ver:0.0.1
+##Ver:0.0.3
 
 # Simple wrapper to manage execution and updating of the actual script.
 
@@ -141,6 +141,8 @@ doUpdateScript()
 	fi
 }
 
+# Update the backup script
 doUpdateScript
 
-/usr/sbin/backupLinux-daemon.sh 
+# Track script's exit code and return it to systemd
+exit $( /usr/sbin/backupLinux-daemon.sh )

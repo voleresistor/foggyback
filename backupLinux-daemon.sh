@@ -1,5 +1,5 @@
 #!/bin/bash
-##Ver:0.0.2
+##Ver:0.0.3
 
 # Allow users to backup individual homedirs
 
@@ -168,9 +168,33 @@ doUpdateScript()
 }
 
 # Verify that at least one network interface is up and active and backup host is available
-checknetwork()
+checkNetwork()
 {
-    for n in /sys/
+	# Network info is stored in this path
+	netinfo="/sys/class/net"
+
+	# For all net interfaces
+    for n in $netinfo/*; do
+		# Skip loopback interface
+		if [[ "$n" =~ .*/lo$ ]]; then
+			continue
+		fi
+
+		# Verify that operstate is up
+		operstate=$(cat "$n/operstate")
+		if [[ $operstate == "down" ]]; then
+			exit 1
+		fi
+
+		# Try contacting the backup host
+		ping -c 1 $1 > /dev/null
+		if [ $? != 0 ]; then
+			exit 1
+		fi
+
+		# All checks passed, ready to go
+		exit 0
+	done
 }
 
 # Log things
@@ -235,6 +259,12 @@ if [ -z ${BACKUP_MODULE+x} ]
 then
 	BACKUP_MODULE=$(hostname)
 	writelog $ACTIVITY_LOG "Computer provided module name: $BACKUP_MODULE."
+fi
+
+# Verify that a network interface is up and backup host is reachable
+netstate=$(checkNetwork $BACKUP_HOST)
+if [ $netstate == 1 ]; then
+	exit 1
 fi
 
 # Just stormin' the variables
