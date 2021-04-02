@@ -3,6 +3,8 @@
 
 # Simple wrapper to manage execution and updating of the actual script.
 
+scriptPath="/usr/sbin/backupLinux-daemon.sh"
+
 # Check for and download updates to the main script
 doUpdateScript()
 {
@@ -144,5 +146,11 @@ doUpdateScript()
 # Update the backup script
 doUpdateScript
 
+# Catch all the given switches and pass them on to the actual script
+while [[ -n "$1" ]]; do
+	switches+="$1 "
+	shift
+done
+
 # Track script's exit code and return it to systemd
-exit $( /usr/sbin/backupLinux-daemon.sh )
+exit $( $scriptPath $switches )

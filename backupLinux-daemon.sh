@@ -167,11 +167,25 @@ doUpdateScript()
 	fi
 }
 
-# Verify that at least one network interface is up and active and backup host is available
+# Verify that network is up and backup host is reachable
 checkNetwork()
 {
+	
+	#Verifies that at least one network interface is online
+	#and the backup host can be contacted.
+	#
+	#Requires the backup host as the first and only argument
+	
 	# Network info is stored in this path
 	netinfo="/sys/class/net"
+
+	# track online state
+	online=false
+
+	# Exit if no host was passed
+	if [ -z ${1+x} ]; then
+		exit 2
+	fi
 
 	# For all net interfaces
     for n in $netinfo/*; do
@@ -182,18 +196,21 @@ checkNetwork()
 
 		# Verify that operstate is up
 		operstate=$(cat "$n/operstate")
-		if [[ $operstate == "down" ]]; then
-			exit 1
-		fi
-
-		# Try contacting the backup host
-		ping -c 1 $1 > /dev/null
-		if [ $? != 0 ]; then
-			exit 1
+		if [ $operstate == "up" ]; then
+			# Try contacting the backup host
+			ping -c 1 $1 > /dev/null
+			if [ $? == 0 ]; then
+				online=true
+			fi
 		fi
 
 		# All checks passed, ready to go
-		exit 0
+		if [ $online == true ]; then
+			exit 0
+		fi
+
+		# Default state is to assume we're not online
+		exit 1
 	done
 }
 
@@ -263,8 +280,9 @@ fi
 
 # Verify that a network interface is up and backup host is reachable
 netstate=$(checkNetwork $BACKUP_HOST)
-if [ $netstate == 1 ]; then
-	exit 1
+if [ $netstate != 0 ]; then
+	writelog $ACTIVITY_LOG "No active network connection."
+	exit $netstate
 fi
 
 # Just stormin' the variables
@@ -300,17 +318,6 @@ BACKUP_DIRS=(
 	"/var"
 )
 
-# Check if the latest backup is at least 24 hours old
-#if [ $MIN_AGE -lt $LAST_DATE ]
-#then
-#	writelog $ACTIVITY_LOG "Last backup was $(expr $(expr $(date +%s) - $LAST_DATE) / 3600) hour(s) ago."
-#	exit 0
-#fi
-
-# Create backup dir
-#writelog $ACTIVITY_LOG "Creating new folder for this backup: $BACKUP_PATH"
-#mkdir -p "$BACKUP_PATH"
-
 # The || true tells bash to continue if the rsync commands returns an error
 for d in "${BACKUP_DIRS[@]}"
 do
@@ -342,10 +349,6 @@ done
 writelog $ACTIVITY_LOG "Update last file: $BACKUP_LAST with $BACKUP_DATE."
 echo $BACKUP_DATE > $BACKUP_LAST
 
-# Prune backups older than 30 days
-#writelog $ACTIVITY_LOG "Delete backups older than 30 days."
-#find $BACKUP_PATH -maxdepth 1 -mtime +30 -exec rm -rf "{}" \;
-
 # Check versions of local and remote wrapper
 #curver=grep "##Ver:" "$LOCAL_SBIN/runBackup.sh" | awk '{print $2}'
 #srcver=grep "##Ver:" "$BACKUP_ROOT/script/runBackup.sh" | awk '{print $2}'
@@ -365,3 +368,4 @@ echo $BACKUP_DATE > $BACKUP_LAST
 
 # Log a successful exit
 writelog $ACTIVITY_LOG "Backup completed with no errors."
+exit 0
