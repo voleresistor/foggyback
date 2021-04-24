@@ -155,7 +155,7 @@ doUpdateScript()
  
 	# if local ver != remote ver
 	newVer=$(compareVer "$remoteVer" "$localVer")
-	echo Result: $newVer
+	#echo Result: $newVer
 	if [ "$newVer" == 1 ]; then
 		# copy remote ver over local ver
 		echo "We have a new version!"
@@ -170,7 +170,6 @@ doUpdateScript()
 # Verify that network is up and backup host is reachable
 checkNetwork()
 {
-	
 	#Verifies that at least one network interface is online
 	#and the backup host can be contacted.
 	#
@@ -184,7 +183,8 @@ checkNetwork()
 
 	# Exit if no host was passed
 	if [ -z ${1+x} ]; then
-		exit 2
+		echo 2
+		exit
 	fi
 
 	# For all net interfaces
@@ -206,12 +206,14 @@ checkNetwork()
 
 		# All checks passed, ready to go
 		if [ $online == true ]; then
-			exit 0
+			echo 0
+			exit
 		fi
-
-		# Default state is to assume we're not online
-		exit 1
 	done
+
+	# Default state is to assume we're not online
+	echo 1
+	exit
 }
 
 # Log things
@@ -231,7 +233,7 @@ do
 	-i)
 		# Initial seed of a new user and/or computer
 		INITIAL="true"
-		writelog $1 "Treating this as an initial seed."
+		writelog $ACTIVITY_LOG "Treating this as an initial seed."
 	esac
 	case "$1" in
 	--module)
@@ -279,9 +281,11 @@ then
 fi
 
 # Verify that a network interface is up and backup host is reachable
+echo "Checking network..."
+#checkNetwork $BACKUP_HOST
 netstate=$(checkNetwork $BACKUP_HOST)
-if [ $netstate != 0 ]; then
-	writelog $ACTIVITY_LOG "No active network connection."
+if [ "$netstate" != 0 ]; then
+	writelog $ACTIVITY_LOG "No active network connection. $netstate"
 	exit $netstate
 fi
 
@@ -292,6 +296,14 @@ readonly BACKUP_URL="$BACKUP_ROOT/$BACKUP_DATE"
 readonly LOCAL_SBIN="/usr/sbin"
 readonly BACKUP_DATA="/var/salinasbackup"
 readonly BACKUP_LAST="$BACKUP_DATA/last"
+
+writelog $ACTIVITY_LOG "BACKUP_ROOT: $BACKUP_ROOT"
+writelog $ACTIVITY_LOG "BACKUP_DATE: $BACKUP_DATE"
+writelog $ACTIVITY_LOG "BACKUP_URL: $BACKUP_URL"
+writelog $ACTIVITY_LOG "LOCAL_SBIN: $LOCAL_SBIN"
+writelog $ACTIVITY_LOG "BACKUP_DATA: $BACKUP_DATA"
+writelog $ACTIVITY_LOG "BACKUP_LAST: $BACKUP_LAST"
+#exit
 
 # Where is the backup going?
 writelog $ACTIVITY_LOG "Backup URL: $BACKUP_URL"
@@ -328,7 +340,7 @@ do
 		# Folder exists so back it up
 		rsync -av --delete \
 			"$d" \
-			--link-dest "/$BACKUP_LAST" \
+			--link-dest "$BACKUP_LAST" \
 			--exclude=".cache" \
 			--exclude=".steam" \
 			--exclude=".steampath" \

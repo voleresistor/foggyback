@@ -131,7 +131,7 @@ doUpdateScript()
  
 	# if local ver != remote ver
 	newVer=$(compareVer "$remoteVer" "$localVer")
-	echo Result: $newVer
+	#echo Result: $newVer
 	if [ "$newVer" == 1 ]; then
 		# copy remote ver over local ver
 		echo "We have a new version!"
@@ -153,4 +153,5 @@ while [[ -n "$1" ]]; do
 done
 
 # Track script's exit code and return it to systemd
+echo "Calling $scriptPath $switches"
 exit $( $scriptPath $switches )
